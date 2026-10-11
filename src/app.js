@@ -1,88 +1,43 @@
 const express = require('express');
-
-const {adminAuth, userAuth} = require("./middlewares/auth");
+require("./config/database");
+const { connectDB } = require("./config/database");
+const User = require("./models/user");
 
 const app = express();
 
-app.use("/test", (req, res, next) => {
-    res.send("Hello from server");
-    // console.log("Hello from server");
-});
+
+app.post("/signup", async (req, res) => {
+    // creating a new isntance of the User model
+
+    const user = new User({
+        firstName: "prathamesh",
+        lastName: "Samudra",
+        email: "prathamsamudra@gmail.com",
+        password: "123456",
+    });
+
+    // modelname.save return a promise so we can use await to wait for the save operation to complete before sending a response back to the client. This ensures that the user is saved to the database before we send a success message.
+   
 
 
-app.get("/product/:id", (req, res) => {
-  res.send("Matches /product or /product/42");
-});
-
-app.get("/users", (req, res, next) => {
-    console.log(req.query);
-    res.send({ name: "John", age: 30 });
-});
-
-app.post("/users", (req, res, next) => {
-    res.send({ message: "User created" });
-});
-
-
-// nesting and grouping with callback functions
-app.get("/testing", (req, res, next) => {
-    console.log("first callback");
-    next();
-}, (req, res, next) => {
-    res.send({ message: "Testing route" });
-    console.log("Middleware executed");
-}, [(req, res, next) => {
-    res.send({ message: "Testing route" });
-    console.log("Middleware executed");
-}],
-    (req, res, next) => {
-        res.send({ message: "Testing route" });
-        console.log("Middleware executed");
-    }
-);
-
-app.get('/users/:id/:name/:skill/:age', (req, res, next) => {
-    console.log(req.params);
-    res.send({ message: "User details" });
-});
-
-
-
-// Handeling Auth middleware for all Admin routes
-
-app.use("/admin", adminAuth);
-
-app.get("/admin/getAllData",(req, res, next) => {
-    res.send({ message: "Admin data" });
-}); 
-
-app.get("/admin/deleteUser",(req, res, next) => {
-    res.send({ message: "deleted user" });
-}); 
-
-
-app.get("/user", userAuth, (req, res, next) => {
-    res.send({ message: "User data" });ß    
-});
-
-
-
-// Error handling
-
-//route handler has 3 params in callback function, but error handling middleware has 4 params in callback function
-app.get("/userData", (req, res, next) => {
-        throw new Error("Something went wrong");
-        res.send({ message: "User data" });
-});
-
-// wildcard error handling middleware
-app.use("/", (err, req, res, next) => {
-    if(err){
-        res.status(500).send({ message: err.message });
+    try{
+        await user.save();
+        res.status(201).send("User created successfully");
+    }catch(err){
+        res.status(500).send("Error creating user: " + err.message);
     }
     
+
 });
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+
+
+connectDB().then(() => {
+    console.log("Database connected successfully");
+    app.listen(3000, () => {
+        console.log('Server is running on port 3000');
+    })
+}).catch((err) => {
+    console.log("Database connection failed", err);
 })
+
