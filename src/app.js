@@ -9,20 +9,6 @@ app.use("/test", (req, res, next) => {
     // console.log("Hello from server");
 });
 
-// app.use("/hello", (req, res, next) => {
-//     res.send("Hello, World!");
-// });
-// app.use("/hello/1", (req, res, next) => {
-//     res.send("Hello, World! (Route 1)");
-// });
-
-// app.get("/hello/*", (req, res) => {
-//   res.send("Matches /hello/abc, /hello/abc/123, etc.");
-// });
-
-// app.get("/user/:id+", (req, res) => {
-//   res.send("Matches /user/1 or /user/1/2");
-// });
 
 app.get("/product/:id", (req, res) => {
   res.send("Matches /product or /product/42");
@@ -37,6 +23,8 @@ app.post("/users", (req, res, next) => {
     res.send({ message: "User created" });
 });
 
+
+// nesting and grouping with callback functions
 app.get("/testing", (req, res, next) => {
     console.log("first callback");
     next();
@@ -76,6 +64,25 @@ app.get("/admin/deleteUser",(req, res, next) => {
 app.get("/user", userAuth, (req, res, next) => {
     res.send({ message: "User data" });ß    
 });
+
+
+
+// Error handling
+
+//route handler has 3 params in callback function, but error handling middleware has 4 params in callback function
+app.get("/userData", (req, res, next) => {
+        throw new Error("Something went wrong");
+        res.send({ message: "User data" });
+});
+
+// wildcard error handling middleware
+app.use("/", (err, req, res, next) => {
+    if(err){
+        res.status(500).send({ message: err.message });
+    }
+    
+});
+
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 })
