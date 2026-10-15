@@ -43,7 +43,6 @@ app.post("/signup", async (req, res) => {
 // login api 
 app.post("/login", async (req, res) => {
   try {
-    console.log(req.method, req.url, req.headers["content-type"], req.body);
     const { email, password } = req.body;
     valdiateSignIndata(req);
 
