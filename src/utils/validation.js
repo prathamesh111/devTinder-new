@@ -10,4 +10,11 @@ const validateSignUpData  = (req) => {
         throw new Error("Password is too weak !")
     }
 }
-module.exports = {validateSignUpData}
+
+const valdiateSignIndata = (req) => {
+    const {email} = req.body;
+    if(!validator.isEmail(email)){
+        throw new Error("You entered invalid Email");
+    }
+}
+module.exports = {validateSignUpData, valdiateSignIndata}

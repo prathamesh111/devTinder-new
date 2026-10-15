@@ -4,11 +4,14 @@ const { connectDB } = require("./config/database");
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
 const app = express();
+app.use(express.json());
 
-const { validateSignUpData } = require("./utils/validation");
+const {
+  validateSignUpData,
+  valdiateSignIndata,
+} = require("./utils/validation");
 
 // middleware for parsing JSON request bodies. It allows the server to accept and process incoming requests that contain JSON data, which is commonly used in RESTful APIs for sending and receiving data between the client and server.
-app.use(express.json());
 
 // posting userdata to the database using the User model. The data is received in the request body and is used to create a new instance of the User model. This instance is then saved to the database using the save() method. If the save operation is successful, a success message is sent back to the client with a status code of 201 (Created). If there is an error during the save operation, an error message is sent back to the client with a status code of 500 (Internal Server Error).
 app.post("/signup", async (req, res) => {
@@ -30,11 +33,32 @@ app.post("/signup", async (req, res) => {
       password: passwordHash,
     });
 
-
     await user.save();
     res.status(201).send("User created successfully");
   } catch (err) {
     res.status(500).send("Error creating user: " + err.message);
+  }
+});
+
+// login api 
+app.post("/login", async (req, res) => {
+  try {
+    console.log(req.method, req.url, req.headers["content-type"], req.body);
+    const { email, password } = req.body;
+    valdiateSignIndata(req);
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatched) {
+      throw new Error("Invalid credentials");
+    }
+
+    res.send("Login Successful");
+  } catch (err) {
+    res.status(500).send("Error logging in: " + err.message);
   }
 });
 
