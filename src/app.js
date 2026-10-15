@@ -63,7 +63,8 @@ app.post("/signup", async (req, res) => {
  app.patch("/user", async (req, res) => {
     const userId = req.body.userId;
     try {
-        const user = await User.findByIdAndUpdate(userId, req.body);
+        const user = await User.findByIdAndUpdate(userId, req.body, {"returnDocument" : "after"});
+        console.log(user);
         res.send("User updated successfully");
     } catch(err) {
         res.status(400).send("Somehing went wrong");
