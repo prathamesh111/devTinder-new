@@ -3,6 +3,8 @@ require("./config/database");
 const { connectDB } = require("./config/database");
 const User = require("./models/user");
 const app = express();
+
+// middleware for parsing JSON request bodies. It allows the server to accept and process incoming requests that contain JSON data, which is commonly used in RESTful APIs for sending and receiving data between the client and server.
 app.use(express.json());
 
 
@@ -46,6 +48,29 @@ app.post("/signup", async (req, res) => {
         res.status(400).send("Somehing went wrong");
     }
  });
+
+ app.delete("/user", async (req, res) => {
+    const userId = req.body.userId;
+    try{
+        const user = await User.findByIdAndDelete(userId);
+        res.send("User deleted successfully");
+    }catch(err) {
+        res.status(400).send("Somehing went wrong");
+    }
+ });
+
+ //updating user data
+ app.patch("/user", async (req, res) => {
+    const userId = req.body.userId;
+    try {
+        const user = await User.findByIdAndUpdate(userId, req.body);
+        res.send("User updated successfully");
+    } catch(err) {
+        res.status(400).send("Somehing went wrong");
+    }
+ });
+
+
 
 
 connectDB().then(() => {
