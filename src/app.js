@@ -72,6 +72,29 @@ app.post("/signup", async (req, res) => {
  });
 
 
+//  update users Email using emailId payload
+
+app.patch("/userByEmail", async (req, res) => {
+    const { email, newEmailId } = req.body;
+    if (!email || !newEmailId) {
+        return res.status(400).send("Both email (current email) and newEmailId are required");
+    }
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { email: email },
+            { email: newEmailId }
+        );
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+        res.send("User email updated successfully");
+    } catch (err) {
+        res.status(400).send("Error updating user email: " + err.message);
+    }
+});
+
+
 
 
 connectDB().then(() => {
@@ -82,4 +105,3 @@ connectDB().then(() => {
 }).catch((err) => {
     console.log("Database connection failed", err);
 })
-
