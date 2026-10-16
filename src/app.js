@@ -5,13 +5,12 @@ require("./config/database");
 const { connectDB } = require("./config/database");
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
-const {userAuth} = require("./middlewares/auth")
-
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+const { userAuth } = require("./middlewares/auth");
 
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 
 const {
   validateSignUpData,
@@ -47,7 +46,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// login api 
+// login api
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -62,28 +61,37 @@ app.post("/login", async (req, res) => {
       throw new Error("Invalid credentials");
     }
 
-    // sending token back using jsonwebtoken 
-    var token = jwt.sign({ _id: user._id }, "Backend@2026");
+    // sending token back using jsonwebtoken
+    var token = await jwt.sign({ _id: user._id }, "Backend@2026", {
+      expiresIn: "1d",
+    });
 
-    res.cookie('token', token);   
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000), // cookie will be removed after 8 hours
+    });
     res.send("Login Successful");
   } catch (err) {
     res.status(500).send("Error logging in: " + err.message);
   }
 });
 
-
-app.get("/profile",userAuth, async (req, res) => {
-  try{
+app.get("/profile", userAuth, async (req, res) => {
+  try {
     console.log("The logged in user is => " + req.user.firstName);
     res.send(req.user);
-
-  }catch(err){
+  } catch (err) {
     res.status(500).send("Error getting profile information: " + err.message);
   }
 });
 
-
+app.post("/sendconnectionrequest", userAuth, (req, res, next) => {
+  try {
+    const user = req.user;
+    res.send(user.firstName + "sent connection request to you");
+  } catch (err) {
+    res.status(500).send("Error sending connection request: " + err.message);
+  }
+});
 
 connectDB()
   .then(() => {
