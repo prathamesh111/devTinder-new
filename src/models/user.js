@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const bcrypt = require("bcrypt");
 var validator = require("validator");
 
 const userSchema = new Schema(
@@ -31,11 +32,11 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: true,
-      validate(value){
-        if(!validator.isStrongPassword(value)){
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
           throw new Error("Password too weak");
         }
-      }
+      },
     },
     age: {
       type: Number,
@@ -68,13 +69,31 @@ const userSchema = new Schema(
     skills: {
       type: [String],
       trim: true,
-      default: ["js"]
+      default: ["js"],
     },
   },
   {
     timestamps: true,
   },
 );
+
+// arrow function not allowed for schema functions
+
+userSchema.methods.getJWT = async function () {
+  const user = this;
+  const token = await jwt.sign({ _id: user._id }, "Backend@2026", {
+    expiresIn: "1d",
+  });
+  return token;
+};
+
+userSchema.methods.validatePassword = async function (passwordByUser) {
+  const user = this;
+  const passwordHash = user.password;
+
+  const isPasswordMatched = await bcrypt.compare(passwordByUser, passwordHash);
+  return isPasswordMatched;
+};
 
 // model name starts with capital  letter
 

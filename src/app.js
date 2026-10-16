@@ -56,15 +56,13 @@ app.post("/login", async (req, res) => {
     if (!user) {
       throw new Error("Invalid credentials");
     }
-    const isPasswordMatched = await bcrypt.compare(password, user.password);
+    const isPasswordMatched = await user.validatePassword(password);
     if (!isPasswordMatched) {
       throw new Error("Invalid credentials");
     }
 
     // sending token back using jsonwebtoken
-    var token = await jwt.sign({ _id: user._id }, "Backend@2026", {
-      expiresIn: "1d",
-    });
+    var token = await user.getJWT();
 
     res.cookie("token", token, {
       expires: new Date(Date.now() + 8 * 3600000), // cookie will be removed after 8 hours
