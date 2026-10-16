@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const bcrypt = require("bcrypt");
 var validator = require("validator");
+const jwt = require("jsonwebtoken");
 
 const userSchema = new Schema(
   {

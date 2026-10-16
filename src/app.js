@@ -5,7 +5,6 @@ require("./config/database");
 const { connectDB } = require("./config/database");
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { userAuth } = require("./middlewares/auth");
 
@@ -85,7 +84,7 @@ app.get("/profile", userAuth, async (req, res) => {
 app.post("/sendconnectionrequest", userAuth, (req, res, next) => {
   try {
     const user = req.user;
-    res.send(user.firstName + "sent connection request to you");
+    res.send(user.firstName + " sent connection request to you");
   } catch (err) {
     res.status(500).send("Error sending connection request: " + err.message);
   }
