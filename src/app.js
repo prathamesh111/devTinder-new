@@ -1,10 +1,16 @@
 const express = require("express");
+const app = express();
+
 require("./config/database");
 const { connectDB } = require("./config/database");
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
-const app = express();
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+
+
 app.use(express.json());
+app.use(cookieParser())
 
 const {
   validateSignUpData,
@@ -55,9 +61,31 @@ app.post("/login", async (req, res) => {
       throw new Error("Invalid credentials");
     }
 
+    // sending token back using jsonwebtoken 
+    var token = jwt.sign({ _id: user._id }, "Backend@2026");
+
+    res.cookie('token', token);   
     res.send("Login Successful");
   } catch (err) {
     res.status(500).send("Error logging in: " + err.message);
+  }
+});
+
+
+app.get("/profile", async (req, res) => {
+  try{
+    const userToken = req.cookies.token; 
+    const decoded = await jwt.verify(userToken, 'Backend@2026');
+    const {_id} = decoded;
+    const user = await User.findById(_id);
+    if(!user){
+      throw new Error("User does not exist in DB")
+    }
+    console.log("The logged in user is => " + user.firstName);
+    res.send(user);
+
+  }catch(err){
+    res.status(500).send("Error getting profile information: " + err.message);
   }
 });
 

@@ -68,6 +68,7 @@ const userSchema = new Schema(
     skills: {
       type: [String],
       trim: true,
+      default: ["js"]
     },
   },
   {
