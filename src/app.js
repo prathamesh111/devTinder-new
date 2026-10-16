@@ -7,6 +7,7 @@ const User = require("./models/user");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const {userAuth} = require("./middlewares/auth")
 
 
 app.use(express.json());
@@ -72,17 +73,10 @@ app.post("/login", async (req, res) => {
 });
 
 
-app.get("/profile", async (req, res) => {
+app.get("/profile",userAuth, async (req, res) => {
   try{
-    const userToken = req.cookies.token; 
-    const decoded = await jwt.verify(userToken, 'Backend@2026');
-    const {_id} = decoded;
-    const user = await User.findById(_id);
-    if(!user){
-      throw new Error("User does not exist in DB")
-    }
-    console.log("The logged in user is => " + user.firstName);
-    res.send(user);
+    console.log("The logged in user is => " + req.user.firstName);
+    res.send(req.user);
 
   }catch(err){
     res.status(500).send("Error getting profile information: " + err.message);
