@@ -46,11 +46,10 @@ const userSchema = new Schema(
     },
     gender: {
       type: String,
-      validate(value) {
-        if (!["male", "female", "other"].includes(value.toLowerCase())) {
-          throw new Error("Gender must be either Male, Female, or Other");
-        }
-      },
+      emums: {
+        values: ["male", "female", "others"],
+        message: `{VALUE} is not a valid gender type`
+      }
     },
     photoUrl: {
       type: String,
