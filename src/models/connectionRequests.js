@@ -25,4 +25,15 @@ const connectionRequestSchema = new Schema(
   },
 );
 
+
+// middleware to run before every save
+connectionRequestSchema.pre("save", function() {
+    const currentReq = this;
+    if(currentReq.fromUserId.equals(currentReq.toUserId)){
+        throw new Error("You cannot send request to yourself")
+    }
+
+    next();
+});
+
 module.exports = mongoose.model("ConnectionRequest", connectionRequestSchema);

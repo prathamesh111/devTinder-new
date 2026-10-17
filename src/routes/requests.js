@@ -28,7 +28,7 @@ requestRouter.post(
         });
       }
 
-      const existingConnectionRequest = connectionRequests.findOne({
+      const existingConnectionRequest = await connectionRequests.findOne({
         $or: [
           { fromUserId, toUserId },
           { fromUserId: toUserId, toUserId: fromUserId },
