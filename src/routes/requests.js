@@ -35,7 +35,7 @@ requestRouter.post(
         ],
       });
 
-      if (existingConnectionRequest) {˘
+      if (existingConnectionRequest){
         return res.status(400).json({
           message: "Cannot send connection request (Existing/duplicate)",
         });
