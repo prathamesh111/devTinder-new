@@ -80,8 +80,6 @@ userRouter.get("/feed", userAuth, async (req, res, next) => {
       hiddenUsersFromFeed.add(item.toUserId.toString());
     })
 
-    console.log(hiddenUsersFromFeed);
-
     const usersList = await User.find({
       $and : [
         {_id: {$nin: Array.from(hiddenUsersFromFeed)}},
