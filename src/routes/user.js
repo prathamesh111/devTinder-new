@@ -45,18 +45,35 @@ userRouter.get("/user/connections", userAuth, async (req, res, next) => {
         "photoUrl",
         "gender",
         "skills",
+      ]).populate("toUserId", [
+        "firstName",
+        "lastName",
+        "age",
+        "photoUrl",
+        "gender",
+        "skills",
       ])
 
     if (!connectionRequest) {
       throw new Error("You dont have any connections");
     }
 
-    const data = connectionRequest.map((row) => row.fromUserId)
+    // console.log(connectionRequest)
+
+    const data = connectionRequest.map((row) => {
+      if(row.fromUserId._id.toString() === loggedInUser._id.toString()){
+        return row.toUserId;
+      }
+      return row.fromUserId;
+    })
+
+
+    console.log(data)
 
     res.json({
       message: "connections fetched",
       data: data
-    })
+    });
   } catch (err) {
     res.status(400).json({
       message: `some error occured + ${err.message}`,
