@@ -6,6 +6,9 @@ const userAuth = async (req, res, next) => {
     // read the token
     const { token } = req.cookies;
     //validate the token
+    if(!token){
+      return res.status(401).send("Pleaase log in");
+    }
 
     const decoded = await jwt.verify(token, "Backend@2026");
     const { _id } = decoded;
