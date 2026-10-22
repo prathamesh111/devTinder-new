@@ -23,14 +23,15 @@ const validateProfileData = (req) => {
       "age",
       "gender",
       "photoUrl",
-      "skills",
       "firstName",
-      "lastname",
+      "lastName",
       "about",
     ];
-    return isEditAllwoed = Object.keys(req.body).every((fields) =>
+    const  isEditAllwoed = Object.keys(req.body).every((fields) =>
       allowedEditFields.includes(fields),
     );
+
+    return isEditAllwoed;
 };
 
 const isValidPassword = (req) => {
