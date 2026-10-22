@@ -42,7 +42,10 @@ profileRouter.patch("/profile/edit", userAuth, async(req, res, next) => {
       })
 
     }catch(err) {
-      res.status(500).send("Error " + err.message);
+      res.status(500).json({
+        message: "Failed",
+        response: err.message
+      });
     }
 }); 
 
