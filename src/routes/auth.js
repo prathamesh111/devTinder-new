@@ -28,8 +28,18 @@ authRouter.post("/signup", async (req, res) => {
       password: passwordHash,
     });
 
-    await user.save();
-    res.status(201).send("User created successfully");
+    const loggedInUser = await user.save();
+
+     // sending token back using jsonwebtoken
+    var token = await loggedInUser.getJWT();
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000), // cookie will be removed after 8 hours
+    });
+
+    res
+      .status(201)
+      .json({ message: "User created successfully", data: loggedInUser });
   } catch (err) {
     res.status(500).send("Error creating user: " + err.message);
   }
