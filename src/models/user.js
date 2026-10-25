@@ -54,7 +54,7 @@ const userSchema = new Schema(
     photoUrl: {
       type: String,
       default:
-        "https://www.google.com/imgres?q=profile%20id%20pic&imgurl=https%3A%2F%2Fwww.pngitem.com%2Fpimgs%2Fm%2F22-224287_computer-icons-user-profile-avatar-caller-id-icon.png&imgrefurl=https%3A%2F%2Fwww.pngitem.com%2Fmiddle%2FixJmih_computer-icons-user-profile-avatar-caller-id-icon%2F&docid=5vtvDry4nRypUM&tbnid=8obT-MCtKHPIoM&vet=12ahUKEwjNr7jb5LuXAxUlkuEIHT5tOIEQnPAOegUI-wEQAA..i&w=860&h=901&hcb=2&ved=2ahUKEwjNr7jb5LuXAxUlkuEIHT5tOIEQnPAOegUI-wEQAA",
+        "https://cdn-icons-png.flaticon.com/512/1053/1053244.png",
       validate(value) {
         if (!validator.isURL(value)) {
           throw new Error("Invalid Photo URL format");
