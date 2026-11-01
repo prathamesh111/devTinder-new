@@ -8,6 +8,13 @@ const {
   valdiateSignIndata,
 } = require("../utils/validation");
 
+const isProduction = process.env.NODE_ENV === "production";
+const tokenCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+};
+
 // posting userdata to the database using the User model. The data is received in the request body and is used to create a new instance of the User model. This instance is then saved to the database using the save() method. If the save operation is successful, a success message is sent back to the client with a status code of 201 (Created). If there is an error during the save operation, an error message is sent back to the client with a status code of 500 (Internal Server Error).
 authRouter.post("/signup", async (req, res) => {
   // creating a new isntance of the User model from the data received in the request body. This instance represents a new user that we want to save to the database.
@@ -34,6 +41,7 @@ authRouter.post("/signup", async (req, res) => {
     var token = await loggedInUser.getJWT();
 
     res.cookie("token", token, {
+      ...tokenCookieOptions,
       expires: new Date(Date.now() + 8 * 3600000), // cookie will be removed after 8 hours
     });
 
@@ -64,6 +72,7 @@ authRouter.post("/login", async (req, res) => {
     var token = await user.getJWT();
 
     res.cookie("token", token, {
+      ...tokenCookieOptions,
       expires: new Date(Date.now() + 8 * 3600000), // cookie will be removed after 8 hours
     });
     res.send(user);
@@ -73,7 +82,7 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.post("/logout", async (req, res, next) => {
-   res.clearCookie("token");
+   res.clearCookie("token", tokenCookieOptions);
 
     res.json({
       message: "You have been logged out successfully"
