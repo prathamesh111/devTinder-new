@@ -3,7 +3,10 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URLS = (process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
 require("./config/database");
 const { connectDB } = require("./config/database");
 const cookieParser = require("cookie-parser");
@@ -11,7 +14,7 @@ var cors = require('cors')
 
 
 app.use(cors({
-   origin: FRONTEND_URL,
+   origin: FRONTEND_URLS,
    credentials: true
 }))
 app.use(express.json());
