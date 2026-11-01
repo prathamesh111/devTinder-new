@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 
-
-// connection url from mongodb atlas followed by db name(devTinder)
 const connectDB = async () => {
-    await mongoose.connect("mongodb+srv://prathamsamudra_db_user:admin@namastenode.nxgzvwx.mongodb.net/devTinder")
-}
+    const mongoDBURI = process.env.MONGODB_URI;
+    if (!mongoDBURI) {
+        throw new Error("MONGODB_URI environment variable is required");
+    }
 
+    await mongoose.connect(mongoDBURI);
+}
 
 module.exports = {connectDB};

@@ -1,5 +1,6 @@
 var jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const jwtSecret = require("../config/jwt");
 
 const userAuth = async (req, res, next) => {
   try {
@@ -10,7 +11,7 @@ const userAuth = async (req, res, next) => {
       return res.status(401).send("Pleaase log in");
     }
 
-    const decoded = await jwt.verify(token, "Backend@2026");
+    const decoded = await jwt.verify(token, jwtSecret);
     const { _id } = decoded;
 
     // find the user in Database

@@ -1,6 +1,9 @@
+require("dotenv").config();
+
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 require("./config/database");
 const { connectDB } = require("./config/database");
 const cookieParser = require("cookie-parser");
@@ -8,7 +11,7 @@ var cors = require('cors')
 
 
 app.use(cors({
-   origin: 'http://localhost:5173',
+   origin: FRONTEND_URL,
    credentials: true
 }))
 app.use(express.json());
