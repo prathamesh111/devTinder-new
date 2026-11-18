@@ -1,0 +1,453 @@
+openapi: 3.0.3
+info:
+  title: DevTinder API
+  version: 1.0.0
+  description: >
+    Account access, developer discovery, and connection-request contracts.
+    The existing "interested" request status represents a pending request.
+servers:
+  - url: /
+security: []
+tags:
+  - name: Account
+  - name: Discovery
+  - name: Connections
+paths:
+  /signup:
+    post:
+      tags: [Account]
+      summary: Create a member account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupRequest"
+      responses:
+        "201":
+          description: Account created and signed in; a token cookie is set.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Email address is already associated with an account.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /login:
+    post:
+      tags: [Account]
+      summary: Sign in with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Signed in; a token cookie is set.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Email or password is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /logout:
+    post:
+      tags: [Account]
+      summary: Clear the sign-in cookie
+      security: []
+      responses:
+        "200":
+          description: Signed out; the token cookie is cleared.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /profile:
+    get:
+      tags: [Account]
+      summary: Read the signed-in member's profile
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: The member's account and profile fields, excluding password credentials.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /feed:
+    get:
+      tags: [Discovery]
+      summary: Browse discoverable developer profiles
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        "200":
+          description: A page of profiles; an empty page is returned when no profiles are available.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /request/send/{status}/{userId}:
+    post:
+      tags: [Connections]
+      summary: Send a connection request
+      description: >
+        "interested" creates a pending request. "ignored" is retained only for compatibility with
+        existing clients and is not a new feature flow. No daily quota is applied.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [interested, ignored]
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Request created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionRequestResponse"
+        "400":
+          description: Invalid status, invalid identifier, or self-request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Target member does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: A request or connection already exists for this member pair.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestConflictResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /request/review/{status}/{requestId}:
+    post:
+      tags: [Connections]
+      summary: Accept or reject a received request
+      description: Only the recipient may decide on a pending request, and the decision is terminal.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [accepted, rejected]
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Request decision saved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionRequestResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Request does not exist or is not visible to this member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Request is no longer pending.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /users/requests/received:
+    get:
+      tags: [Connections]
+      summary: List pending requests received by the signed-in member
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Pending requests with safe sender profile summaries; an empty list is valid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceivedRequestsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /user/connections:
+    get:
+      tags: [Connections]
+      summary: List accepted connections for the signed-in member
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Accepted connections as safe profile summaries; an empty list is valid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+  responses:
+    BadRequest:
+      description: Request input is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Sign-in is required.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: Unexpected server error; internal details are not exposed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    SignupRequest:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        lastName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
+    AccountResponse:
+      type: object
+      required: [message, data]
+      properties:
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/AccountView"
+    AccountView:
+      allOf:
+        - $ref: "#/components/schemas/PublicProfile"
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+    PublicProfile:
+      type: object
+      required: [_id, firstName, lastName]
+      properties:
+        _id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        age:
+          type: integer
+          minimum: 18
+          maximum: 99
+        photoUrl:
+          type: string
+          format: uri
+        gender:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+    ProfileListResponse:
+      type: object
+      required: [message, data]
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicProfile"
+    ConnectionRequestView:
+      type: object
+      required: [_id, fromUserId, toUserId, status]
+      properties:
+        _id:
+          type: string
+        fromUserId:
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/PublicProfile"
+        toUserId:
+          type: string
+        status:
+          type: string
+          enum: [interested, accepted, rejected, ignored]
+          description: interested is the pending state; ignored is legacy compatibility behavior.
+        createdAt:
+          type: string
+          format: date-time
+    ConnectionRequestResponse:
+      type: object
+      required: [message, data]
+      properties:
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ConnectionRequestView"
+    ReceivedRequestsResponse:
+      type: object
+      required: [message, data]
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConnectionRequestView"
+    RequestConflictResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/ApiError"
+        existingRequest:
+          $ref: "#/components/schemas/ConnectionRequestView"
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/ApiError"
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
